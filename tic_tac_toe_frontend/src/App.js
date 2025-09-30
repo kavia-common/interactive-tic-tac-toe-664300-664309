@@ -1,49 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from 'react';
 
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
-
-  // Effect to apply theme to document element
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    // Load external CSS files
+    const styleLinks = [
+      '/assets/styles.css',
+      '/assets/home-1-49.css'
+    ];
+    
+    styleLinks.forEach(href => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    });
 
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+    // Load external JS
+    const script = document.createElement('script');
+    script.src = '/assets/app.js';
+    script.defer = true;
+    document.body.appendChild(script);
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    // Load content from HTML file
+    fetch('/assets/home-1-49.html')
+      .then(response => response.text())
+      .then(html => {
+        // Extract body content
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const bodyContent = tempDiv.querySelector('.container');
+        if (bodyContent) {
+          document.querySelector('#root').appendChild(bodyContent);
+        }
+      });
+
+    // Cleanup function
+    return () => {
+      styleLinks.forEach(href => {
+        const link = document.querySelector(`link[href="${href}"]`);
+        if (link) link.remove();
+      });
+      const script = document.querySelector('script[src="/assets/app.js"]');
+      if (script) script.remove();
+    };
+  }, []);
+
+  return null;
 }
 
 export default App;
